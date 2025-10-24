@@ -1,5 +1,14 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { FlatList, StyleSheet, RefreshControl } from "react-native";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+} from "react";
+import {
+  FlatList,
+  StyleSheet,
+  RefreshControl,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
@@ -7,34 +16,36 @@ import { Colors, Spacing } from "../../components/Theme";
 import TicketCard from "../../components/TicketCard";
 import HeaderBar from "../../components/HeaderBar";
 import EmptyState from "../../components/EmptyState";
-import type { Ticket } from "../../src/types";
-import { subscribeTickets } from "../../src/services/tickets";
+
+import type { Alert } from "../../src/types";
+import { subscribeAlerts } from "../../src/services/alerts";
 
 export default function TicketsScreen() {
   const router = useRouter();
-  const [items, setItems] = useState<Ticket[]>([]);
+
+  const [items, setItems] = useState<Alert[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    const unsub = subscribeTickets(setItems);
+    const unsub = subscribeAlerts(setItems);
     return () => unsub();
   }, []);
 
   const onRefresh = useCallback(() => {
-    // onSnapshot is realtime; this just gives the user feedback
     setRefreshing(true);
     const t = setTimeout(() => setRefreshing(false), 600);
     return () => clearTimeout(t);
   }, []);
 
   const sorted = useMemo(
-    () => [...items].sort((a, b) => (a.dateISO < b.dateISO ? 1 : -1)),
+    () => [...items].sort((a, b) => (a.date < b.date ? 1 : -1)),
     [items]
   );
 
   return (
     <SafeAreaView style={styles.safe}>
       <HeaderBar />
+
       <FlatList
         contentContainerStyle={[
           styles.listContent,
@@ -44,11 +55,16 @@ export default function TicketsScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TicketCard
-            ticket={item}
-            onPress={(id) => router.push({ pathname: "/ticket/[id]", params: { id } })}
+            alert={item}
+            onPress={(id: string) =>
+              router.push({
+                pathname: "/ticket/[id]",
+                params: { id },
+              })
+            }
           />
         )}
-        ListEmptyComponent={<EmptyState onRefresh={onRefresh} />}  // <-- shows button
+        ListEmptyComponent={<EmptyState onRefresh={onRefresh} />}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

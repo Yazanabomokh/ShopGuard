@@ -1,12 +1,12 @@
 import { ImageSourcePropType } from "react-native";
 
-export type Ticket = {
+export type Alert = {
   id: string;
-  name: string;
-  location: string;
-  dateISO: string;
-  image?: ImageSourcePropType;
-  time?: string;
-  age?: string;
+  theif_id?: number;
+  theif_name?: string;
+  theif_age?: number;
+  theif_phone?: string;
+  theif_image?: ImageSourcePropType;
+  date: string;
   videoUrl?: string;
 };

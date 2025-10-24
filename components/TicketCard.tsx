@@ -3,51 +3,97 @@ import { useRouter } from "expo-router";
 import { View, Text, Image, StyleSheet, Pressable } from "react-native";
 import { Colors, Radius, Spacing } from "./Theme";
 import { Ionicons } from "@expo/vector-icons";
-import type { Ticket } from "../src/types";
+import type { Alert } from "../src/types";
 
 type Props = {
-  ticket: Ticket;
+  alert: Alert;
   onPress?: (id: string) => void;
 };
 
-export default function TicketCard({ ticket, onPress }: Props) {
+export default function TicketCard({ alert, onPress }: Props) {
   const router = useRouter();
 
-  const date = new Date(ticket.dateISO);
-  const formatted = isNaN(date.getTime())
-    ? ticket.dateISO
-    : date.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+  // parse the date string coming from Firebase ("Friday, 2025-10-24 20:09:51")
+  const parsed = new Date(alert.date);
+  const formatted = isNaN(parsed.getTime())
+    ? alert.date
+    : parsed.toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
 
   const handlePress = () => {
-    if (onPress) return onPress(ticket.id);
-    router.push({ pathname: "/ticket/[id]", params: { id: ticket.id } });
+    if (onPress) return onPress(alert.id);
+
+    router.push({
+      pathname: "/ticket/[id]",
+      params: { id: alert.id },
+    });
   };
 
   return (
     <View style={styles.card}>
       <View style={styles.rowTop}>
-        {ticket.image ? (
-          <Image source={ticket.image} style={styles.avatar} />
+        {alert.theif_image ? (
+          <Image source={alert.theif_image} style={styles.avatar} />
         ) : (
-          <View style={[styles.avatar, { backgroundColor: "#eee" }]} />
+          <View
+            style={[
+              styles.avatar,
+              { backgroundColor: Colors.outline, alignItems: "center", justifyContent: "center" },
+            ]}
+          >
+            <Text style={{ color: Colors.subtext, fontWeight: "600", fontSize: 18 }}>?</Text>
+          </View>
         )}
 
         <View style={{ flex: 1 }}>
-          <Text style={styles.name}>{ticket.name}</Text>
+          <Text style={styles.name}>{alert.theif_name ?? "Unknown"}</Text>
 
+          {/* Age + ID */}
           <View style={styles.metaRow}>
-            <Ionicons name="location-outline" size={16} color={Colors.subtext} style={{ marginRight: 6 }} />
-            <Text style={styles.metaText}>{ticket.location}</Text>
+            <Ionicons
+              name="person-outline"
+              size={16}
+              color={Colors.subtext}
+              style={{ marginRight: 6 }}
+            />
+            <Text style={styles.metaText}>
+              ID: {alert.theif_id ?? "N/A"} | Age: {alert.theif_age ?? "N/A"}
+            </Text>
           </View>
 
+          {/* Phone */}
           <View style={styles.metaRow}>
-            <Ionicons name="calendar-outline" size={16} color={Colors.subtext} style={{ marginRight: 6 }} />
+            <Ionicons
+              name="call-outline"
+              size={16}
+              color={Colors.subtext}
+              style={{ marginRight: 6 }}
+            />
+            <Text style={styles.metaText}>
+              {alert.theif_phone ?? "No phone"}
+            </Text>
+          </View>
+
+          {/* Date */}
+          <View style={styles.metaRow}>
+            <Ionicons
+              name="calendar-outline"
+              size={16}
+              color={Colors.subtext}
+              style={{ marginRight: 6 }}
+            />
             <Text style={styles.metaText}>{formatted}</Text>
           </View>
         </View>
       </View>
 
-      <Pressable onPress={handlePress} style={({ pressed }) => [styles.button, { opacity: pressed ? 0.9 : 1 }]}>
+      <Pressable
+        onPress={handlePress}
+        style={({ pressed }) => [styles.button, { opacity: pressed ? 0.9 : 1 }]}
+      >
         <Text style={styles.buttonText}>View Details</Text>
       </Pressable>
     </View>
@@ -73,6 +119,7 @@ const styles = StyleSheet.create({
     height: 88,
     borderRadius: Radius.md,
     marginRight: Spacing.md,
+    backgroundColor: Colors.outline,
   },
   name: {
     color: Colors.text,
